@@ -45,7 +45,9 @@ set(SOURCE_FILES
     ftpstorcommand.cpp
     sslserver.cpp
     )
+
 set(RCC_FILES certificates.qrc)
+
 add_library(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES} ${RCC_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_LIBRARIES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE QFTPSERVERLIB_LIBRARY)
@@ -61,6 +63,8 @@ export(TARGETS ${PROJECT_NAME}
     )
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/QFtpServer
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} ${CMAKE_INSTALL_INCLUDEDIR}/QFtpServer
     )
 install(EXPORT ${PROJECT_NAME}Targets
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"

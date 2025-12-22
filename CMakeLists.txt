@@ -151,7 +151,13 @@ ADD_CUSTOM_TARGET(uninstall
     DEPENDS uninstall-runtime)
 
 add_subdirectory(QFtpServerLib)
-add_subdirectory(QFtpServer)
-add_subdirectory(QFtpServerCommandLine)
-#add_subdirectory(QFtpServerTests)
+option(WITH_APP "Build application" ON)
+if(WITH_APP)
+    add_subdirectory(QFtpServer)
+    add_subdirectory(QFtpServerCommandLine)
+endif()
+option(WITH_TEST "Build tests" OFF)
+#if(WITH_TEST)
+#   add_subdirectory(QFtpServerTests)
+#endif()
 

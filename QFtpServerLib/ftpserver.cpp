@@ -6,10 +6,13 @@
 #include <QNetworkInterface>
 #include <QSslSocket>
 
-FtpServer::FtpServer(QObject *parent, const QString &rootPath, int port, const QString &userName, const QString &password, bool readOnly, bool onlyOneIpAllowed) :
-    QObject(parent)
+FtpServer::FtpServer(QObject *parent, const QString &rootPath, int port,
+                     const QString &userName, const QString &password,
+                     bool readOnly, bool onlyOneIpAllowed) : QObject(parent)
+    , m_pFilter(this)
 {
     bool bRet = false;
+
     server = new SslServer(this);
     // In Qt4, QHostAddress::Any listens for IPv4 connections only, but as of
     // Qt5, it now listens on all available interfaces, and
@@ -48,23 +51,45 @@ QString FtpServer::lanIp()
 
 void FtpServer::startNewControlConnection()
 {
-    QSslSocket *socket = (QSslSocket *) server->nextPendingConnection();
+    QSslSocket *socket = qobject_cast<QSslSocket*>(server->nextPendingConnection());
+    if(!socket) {
+        qCritical() << "The socket is nullptr";
+        return;
+    }
 
     // If this is not a previously encountered IP emit the newPeerIp signal.
     QString peerIp = socket->peerAddress().toString();
     qDebug() << "connection from" << peerIp;
-    if (!encounteredIps.contains(peerIp)) {
-        // If we don't allow more than one IP for the client, we close
-        // that connection.
-        if (onlyOneIpAllowed && !encounteredIps.isEmpty()) {
-            delete socket;
-            return;
-        }
-
-        emit newPeerIp(peerIp);
-        encounteredIps.insert(peerIp);
+    bool bFilter = false;
+    if(m_pFilter)
+        bFilter = m_pFilter->onFilter(socket);
+    if(bFilter)
+    {
+        delete socket;
+        return;
     }
 
     // Create a new FTP control connection on this socket.
     new FtpControlConnection(this, socket, rootPath, userName, password, readOnly);
+}
+
+bool FtpServer::onFilter(QSslSocket *socket)
+{
+    if(!socket) return true;
+    QString ip = socket->peerAddress().toString();
+    if (!encounteredIps.contains(ip)) {
+        // If we don't allow more than one IP for the client, we close
+        // that connection.
+        if (onlyOneIpAllowed && !encounteredIps.isEmpty()) {
+            return true;
+        }
+        emit newPeerIp(ip);
+        encounteredIps.insert(ip);
+    }
+    return false;
+}
+
+void FtpServer::SetFilter(CFtpServerFilter *handler)
+{
+    m_pFilter = handler;
 }

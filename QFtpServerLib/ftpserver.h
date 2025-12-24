@@ -6,11 +6,17 @@
 #include <qftpserverlib_global.h>
 
 class SslServer;
+class QSslSocket;
+
+class QFTPSERVERLIBSHARED_EXPORT CFtpServerFilter {
+public:
+    virtual bool onFilter(QSslSocket *socket) = 0;
+};
 
 // The ftp server. Listens on a port, and starts a new control connection each
 // time it gets connected.
 
-class QFTPSERVERLIBSHARED_EXPORT FtpServer : public QObject
+class QFTPSERVERLIBSHARED_EXPORT FtpServer : public QObject, CFtpServerFilter
 {
     Q_OBJECT
 public:
@@ -27,6 +33,9 @@ public:
     // Get the LAN IP of the host, e.g. "192.168.1.10".
     static QString lanIp();
 
+    void SetFilter(CFtpServerFilter* handler);
+    virtual bool onFilter(QSslSocket *socket) override;
+
 signals:
     // A connection from a new IP has been established. This signal is emitted
     // when the FTP server is connected by a new IP. The new IP will then be
@@ -39,6 +48,8 @@ private slots:
     void startNewControlConnection();
 
 private:
+    CFtpServerFilter* m_pFilter;
+
     // If both username and password are empty, it means anonymous mode - any
     // username and password combination will be accepted.
     QString userName;

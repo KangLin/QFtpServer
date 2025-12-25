@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QSet>
+ #include <QHostAddress>
 #include <qftpserverlib_global.h>
 
 class SslServer;
@@ -20,9 +21,12 @@ class QFTPSERVERLIBSHARED_EXPORT CFtpServer : public QObject, CFtpServerFilter
 {
     Q_OBJECT
 public:
-    explicit CFtpServer(QObject *parent, const QString &rootPath, int port = 21,
-                       const QString &userName = QString(), const QString &password = QString(),
-                       bool readOnly = false, bool onlyOneIpAllowed = false);
+    explicit CFtpServer(QObject *parent, const QString &rootPath, quint16 port = 21,
+                        const QString &userName = QString(), const QString &password = QString(),
+                        bool readOnly = false);
+    ~CFtpServer();
+    bool Listening(const QHostAddress& addr = QHostAddress::Any);
+    bool Listening(const QList<QHostAddress>& addr);
 
     // Whether or not the server is listening for incoming connections. If it
     // is not currently listening then there was an error - probably no
@@ -49,7 +53,7 @@ private slots:
 
 private:
     CFtpServerFilter* m_pFilter;
-
+    quint16 m_nPort;
     // If both username and password are empty, it means anonymous mode - any
     // username and password combination will be accepted.
     QString m_szUserName;
@@ -62,7 +66,7 @@ private:
     QString m_szRootPath;
 
     // The SSL m_pServer listen for incoming connections.
-    SslServer *m_pServer;
+    QSet<SslServer*> m_pServer;
 
     // All the IPs that this FTP server object has encountered in its lifetime.
     // See the signal newPeerIp.
@@ -71,11 +75,6 @@ private:
     // Whether or not the server is in read-only mode. In read-only mode the
     // server will not create, modify or delete any files or directories.
     bool m_bReadOnly;
-
-    // Causes the server to remember the first IP that connects to it, and then
-    // refuse connections from any other IP. This makes sense because a mobile
-    // phone is unlikely to be used from 2 places at once.
-    bool m_bOnlyOneIpAllowed;
 };
 
 #endif // FTPSERVER_H

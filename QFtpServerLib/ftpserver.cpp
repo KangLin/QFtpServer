@@ -1,42 +1,77 @@
-#include "ftpserver.h"
-#include "ftpcontrolconnection.h"
-#include "sslserver.h"
-
+#include <QLoggingCategory>
 #include <QDebug>
 #include <QNetworkInterface>
 #include <QSslSocket>
 
-CFtpServer::CFtpServer(QObject *parent, const QString &rootPath, int port,
-                     const QString &userName, const QString &password,
-                     bool readOnly, bool onlyOneIpAllowed) : QObject(parent)
+#include "ftpserver.h"
+#include "ftpcontrolconnection.h"
+#include "sslserver.h"
+
+static Q_LOGGING_CATEGORY(log, "FtpServer")
+CFtpServer::CFtpServer(QObject *parent, const QString &rootPath, quint16 port,
+                       const QString &userName, const QString &password,
+                       bool readOnly) : QObject(parent)
     , m_pFilter(this)
+    , m_nPort(port)
+    , m_szUserName(userName)
+    , m_szPassword(password)
+    , m_szRootPath(rootPath)
+    , m_bReadOnly(readOnly)
+{
+}
+
+CFtpServer::~CFtpServer()
+{
+    qDebug(log) << Q_FUNC_INFO;
+    foreach (auto s, m_pServer) {
+        if(s) {
+            s->close();
+            delete s;
+        }
+    }
+}
+
+bool CFtpServer::Listening(const QHostAddress &addr)
 {
     bool bRet = false;
+    auto pServer = new SslServer(this);
+    if(!pServer) {
+        qCritical(log) << "new SslServer fail. no memery";
+        return false;
+    }
 
-    m_pServer = new SslServer(this);
-    // In Qt4, QHostAddress::Any listens for IPv4 connections only, but as of
-    // Qt5, it now listens on all available interfaces, and
-    // QHostAddress::AnyIPv4 needs to be used if we want only IPv4 connections.
-#if QT_VERSION >= 0x050000
-    bRet = m_pServer->listen(QHostAddress::AnyIPv4, port);
-#else
-    bRet = server->listen(QHostAddress::Any, port);
-#endif
+    bRet = pServer->listen(addr, m_nPort);
     if(!bRet)
     {
-        qCritical() << "Server listen at " << port << " fail:" << m_pServer->errorString();
+        qCritical(log) << "Server listen at" << m_nPort << " fail:" << pServer->errorString();
+        delete pServer;
+        return false;
     }
-    connect(m_pServer, SIGNAL(newConnection()), this, SLOT(startNewControlConnection()));
-    this->m_szUserName = userName;
-    this->m_szPassword = password;
-    this->m_szRootPath = rootPath;
-    this->m_bReadOnly = readOnly;
-    this->m_bOnlyOneIpAllowed = onlyOneIpAllowed;
+    qDebug(log) << "Server listen at" << addr.toString() << "Port:" << m_nPort;
+    bRet = connect(pServer, SIGNAL(newConnection()), this, SLOT(startNewControlConnection()));
+    Q_ASSERT(bRet);
+    m_pServer.insert(pServer);
+    return true;
+}
+
+bool CFtpServer::Listening(const QList<QHostAddress> &addr)
+{
+    bool bRet = false;
+    foreach (auto a, addr) {
+        bool b = Listening(a);
+        if(b)
+            bRet = b;
+    }
+    return bRet;
 }
 
 bool CFtpServer::isListening()
 {
-    return m_pServer->isListening();
+    foreach (auto s, m_pServer) {
+        if(s->isListening())
+            return true;
+    }
+    return false;
 }
 
 QString CFtpServer::lanIp()
@@ -51,26 +86,27 @@ QString CFtpServer::lanIp()
 
 void CFtpServer::startNewControlConnection()
 {
-    QSslSocket *socket = qobject_cast<QSslSocket*>(m_pServer->nextPendingConnection());
-    if(!socket) {
+    SslServer* pServer = qobject_cast<SslServer*>(sender());
+    QSslSocket* pSocket = qobject_cast<QSslSocket*>(pServer->nextPendingConnection());
+    if(!pSocket) {
         qCritical() << "The socket is nullptr";
         return;
     }
 
     // If this is not a previously encountered IP emit the newPeerIp signal.
-    QString peerIp = socket->peerAddress().toString();
+    QString peerIp = pSocket->peerAddress().toString();
     qDebug() << "connection from" << peerIp;
     bool bFilter = false;
     if(m_pFilter)
-        bFilter = m_pFilter->onFilter(socket);
+        bFilter = m_pFilter->onFilter(pSocket);
     if(bFilter)
     {
-        delete socket;
+        delete pSocket;
         return;
     }
 
     // Create a new FTP control connection on this socket.
-    new FtpControlConnection(this, socket, m_szRootPath, m_szUserName, m_szPassword, m_bReadOnly);
+    new FtpControlConnection(this, pSocket, m_szRootPath, m_szUserName, m_szPassword, m_bReadOnly);
 }
 
 bool CFtpServer::onFilter(QSslSocket *socket)
@@ -78,11 +114,6 @@ bool CFtpServer::onFilter(QSslSocket *socket)
     if(!socket) return true;
     QString ip = socket->peerAddress().toString();
     if (!m_EncounteredIps.contains(ip)) {
-        // If we don't allow more than one IP for the client, we close
-        // that connection.
-        if (m_bOnlyOneIpAllowed && !m_EncounteredIps.isEmpty()) {
-            return true;
-        }
         emit newPeerIp(ip);
         m_EncounteredIps.insert(ip);
     }

@@ -15,7 +15,6 @@ public:
                                QString szUser = QString(),
                                QString szPassword = QString(),
                                bool bReadOnly = false,
-                               bool bOnlyOneIpAllowed = false,
                                QObject *parent = nullptr);
 signals:
     void sigMessage(const QString &msg);
@@ -30,7 +29,6 @@ private:
     QString m_szUser;
     QString m_szPassword;
     bool m_bReadOnly;
-    bool m_bOnlyOneIpAllowed;
 };
 
 #endif // CBACKGROUNDTHREAD_H_KL_2021_4_4

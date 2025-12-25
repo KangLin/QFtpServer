@@ -8,27 +8,24 @@ CFtpThread::CFtpThread(QString szPath,
                                      QString szUser,
                                      QString szPassword,
                                      bool bReadOnly,
-                                     bool bOnlyOneIpAllowed,
                                      QObject *parent)
     : QThread(parent),
       m_szPath(szPath),
       m_nPort(nPort),
       m_szUser(szUser),
       m_szPassword(szPassword),
-      m_bReadOnly(bReadOnly),
-      m_bOnlyOneIpAllowed(bOnlyOneIpAllowed)
+      m_bReadOnly(bReadOnly)
 {
 }
 
 void CFtpThread::run()
 {
     CFtpServer server(nullptr, m_szPath, m_nPort, m_szUser,
-                     m_szPassword, m_bReadOnly, m_bOnlyOneIpAllowed);
+                     m_szPassword, m_bReadOnly);
     bool check = connect(&server, SIGNAL(newPeerIp(const QString&)),
                          this, SIGNAL(sigNewPeerIp(const QString&)));
     Q_ASSERT(check);
-    
-    if (server.isListening()) {
+    if (server.Listening()) {
         emit sigMessage("Listening at " + CFtpServer::lanIp());
     } else {
         emit sigMessage("Not listening");

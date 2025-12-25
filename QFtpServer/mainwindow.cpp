@@ -172,7 +172,6 @@ void MainWindow::loadSettings()
     //ui->lineEditRootPath->setText(settings.value("settings/rootpath", QDir::rootPath()).toString());
     ui->checkBoxAnonymous->setChecked(settings.value("settings/anonymous", false).toBool());
     ui->checkBoxReadOnly->setChecked(settings.value("settings/readonly", false).toBool());
-    ui->checkBoxOnlyOneIpAllowed->setChecked(settings.value("settings/oneip", true).toBool());
 #ifndef Q_OS_ANDROID
     m_nCloseType = settings.value("settings/closetype", UNKNOW).toInt();
 #endif
@@ -187,7 +186,6 @@ void MainWindow::saveSettings()
     settings.setValue("settings/rootpath", ui->lineEditRootPath->text());
     settings.setValue("settings/anonymous", ui->checkBoxAnonymous->isChecked());
     settings.setValue("settings/readonly", ui->checkBoxReadOnly->isChecked());
-    settings.setValue("settings/oneip", ui->checkBoxOnlyOneIpAllowed->isChecked());
 #ifndef Q_OS_ANDROID
     settings.setValue("settings/closetype", m_nCloseType);
 #endif
@@ -211,8 +209,7 @@ void MainWindow::startServer()
                                    ui->lineEditPort->text().toInt(),
                                    userName,
                                    password,
-                                   ui->checkBoxReadOnly->isChecked(),
-                                   ui->checkBoxOnlyOneIpAllowed->isChecked());
+                                   ui->checkBoxReadOnly->isChecked());
     bool check = connect(server, SIGNAL(sigNewPeerIp(const QString&)),
                          this, SLOT(onPeerIpChanged(const QString&)));
     Q_ASSERT(check);

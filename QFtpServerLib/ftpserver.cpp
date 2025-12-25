@@ -101,6 +101,7 @@ void CFtpServer::startNewControlConnection()
         bFilter = m_pFilter->onFilter(pSocket);
     if(bFilter)
     {
+        qDebug(log) << "Filte connection from IP:" << peerIp << "Port:" << pSocket->peerPort();
         delete pSocket;
         return;
     }

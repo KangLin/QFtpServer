@@ -1,6 +1,9 @@
 QFtpServer - an FTP server written in Qt
 ----------------------------------------
 
+I based it on [QFtpServer](https://github.com/sashoalm/QFtpServer)
+and used it for [RabbitRemoteControl](https://github.com/KangLin/RabbitRemoteControl)
+
 ### Description
 
 QFtpServer is an event-driven server which is written entirely in Qt.
@@ -26,11 +29,13 @@ It doesn't support:
 * IPv6.
 * FTPS (this standard is obsolete and FTP-ES should be used instead).
 * Multiple user accounts.
+* Securely bind network card interfaces and filter interfaces.
 
 #### Example usage:
 
-    server = new FtpServer(this, "/ftp/root/path", 21, "MyUserName",
-                           "MyPassword", false, false);
+    server = new CFtpServer(this, "/ftp/root/path", 21, "MyUserName",
+                           "MyPassword", false);
+    server->Listening();
 
 
 ### QFtpServer
@@ -48,6 +53,10 @@ It supports:
 
     git clone --recursive https://github.com/sashoalm/QFtpServer.git
     cd QFtpServer
-    qmake QFtpServer.pro
-    make 
+    cmake -E make_directory build
+    cd build
+    cmake .. -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=......
+    cmake --build . --config Release --parallel $(nproc)
+    cmake --build . --config Release --target install
     

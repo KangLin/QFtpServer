@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
     const QString &rootPath = QDir::currentPath();
 
     // *TODO: Allow using port 0.
-    FtpServer server(&a, rootPath, 2121, userName, password, false, false);
+    CFtpServer server(&a, rootPath, 2121, userName, password, false, false);
     if (server.isListening()) {
-        qDebug() << QString("Listening at %1:2121").arg(FtpServer::lanIp()).toStdString().c_str();
+        qDebug() << QString("Listening at %1:2121").arg(CFtpServer::lanIp()).toStdString().c_str();
         qDebug() << QString("User: %1").arg(userName).toStdString().c_str();
         qDebug() << QString("Password: %1").arg(password).toStdString().c_str();
         return a.exec();

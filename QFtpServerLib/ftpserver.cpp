@@ -6,7 +6,7 @@
 #include <QNetworkInterface>
 #include <QSslSocket>
 
-FtpServer::FtpServer(QObject *parent, const QString &rootPath, int port,
+CFtpServer::CFtpServer(QObject *parent, const QString &rootPath, int port,
                      const QString &userName, const QString &password,
                      bool readOnly, bool onlyOneIpAllowed) : QObject(parent)
     , m_pFilter(this)
@@ -34,12 +34,12 @@ FtpServer::FtpServer(QObject *parent, const QString &rootPath, int port,
     this->onlyOneIpAllowed = onlyOneIpAllowed;
 }
 
-bool FtpServer::isListening()
+bool CFtpServer::isListening()
 {
     return server->isListening();
 }
 
-QString FtpServer::lanIp()
+QString CFtpServer::lanIp()
 {
     foreach (const QHostAddress &address, QNetworkInterface::allAddresses()) {
         if (address.protocol() == QAbstractSocket::IPv4Protocol && address != QHostAddress(QHostAddress::LocalHost)) {
@@ -49,7 +49,7 @@ QString FtpServer::lanIp()
     return "";
 }
 
-void FtpServer::startNewControlConnection()
+void CFtpServer::startNewControlConnection()
 {
     QSslSocket *socket = qobject_cast<QSslSocket*>(server->nextPendingConnection());
     if(!socket) {
@@ -73,7 +73,7 @@ void FtpServer::startNewControlConnection()
     new FtpControlConnection(this, socket, rootPath, userName, password, readOnly);
 }
 
-bool FtpServer::onFilter(QSslSocket *socket)
+bool CFtpServer::onFilter(QSslSocket *socket)
 {
     if(!socket) return true;
     QString ip = socket->peerAddress().toString();
@@ -89,7 +89,7 @@ bool FtpServer::onFilter(QSslSocket *socket)
     return false;
 }
 
-void FtpServer::SetFilter(CFtpServerFilter *handler)
+void CFtpServer::SetFilter(CFtpServerFilter *handler)
 {
     m_pFilter = handler;
 }

@@ -15,7 +15,7 @@ namespace Ui {
     class MainWindow;
 }
 
-class FtpServer;
+class CFtpServer;
 
 class MainWindow : public QMainWindow
 {

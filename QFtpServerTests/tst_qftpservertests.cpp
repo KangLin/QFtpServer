@@ -51,7 +51,7 @@ public:
         rootPath = "/tmp/ftpservertest/";
         removeRecursively(rootPath);
         QDir().mkpath(rootPath);
-        server.reset(new FtpServer(0, rootPath, port, params->userName, params->password));
+        server.reset(new CFtpServer(0, rootPath, port, params->userName, params->password));
 
         // Create the FTP client (and optionally login).
         client.reset(new QFtp());

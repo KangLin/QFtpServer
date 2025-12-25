@@ -16,11 +16,11 @@ public:
 // The ftp server. Listens on a port, and starts a new control connection each
 // time it gets connected.
 
-class QFTPSERVERLIBSHARED_EXPORT FtpServer : public QObject, CFtpServerFilter
+class QFTPSERVERLIBSHARED_EXPORT CFtpServer : public QObject, CFtpServerFilter
 {
     Q_OBJECT
 public:
-    explicit FtpServer(QObject *parent, const QString &rootPath, int port = 21,
+    explicit CFtpServer(QObject *parent, const QString &rootPath, int port = 21,
                        const QString &userName = QString(), const QString &password = QString(),
                        bool readOnly = false, bool onlyOneIpAllowed = false);
 

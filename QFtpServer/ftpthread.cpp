@@ -22,14 +22,14 @@ CFtpThread::CFtpThread(QString szPath,
 
 void CFtpThread::run()
 {
-    FtpServer server(nullptr, m_szPath, m_nPort, m_szUser,
+    CFtpServer server(nullptr, m_szPath, m_nPort, m_szUser,
                      m_szPassword, m_bReadOnly, m_bOnlyOneIpAllowed);
     bool check = connect(&server, SIGNAL(newPeerIp(const QString&)),
                          this, SIGNAL(sigNewPeerIp(const QString&)));
     Q_ASSERT(check);
     
     if (server.isListening()) {
-        emit sigMessage("Listening at " + FtpServer::lanIp());
+        emit sigMessage("Listening at " + CFtpServer::lanIp());
     } else {
         emit sigMessage("Not listening");
     }

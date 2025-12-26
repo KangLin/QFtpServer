@@ -25,7 +25,16 @@ public:
                         const QString &userName = QString(), const QString &password = QString(),
                         bool readOnly = false);
     ~CFtpServer();
-    bool Listening(const QHostAddress& addr = QHostAddress::Any);
+    bool Listening(const QHostAddress& addr =
+                    // In Qt4, QHostAddress::Any listens for IPv4 connections only, but as of
+                    // Qt5, it now listens on all available interfaces, and
+                    // QHostAddress::AnyIPv4 needs to be used if we want only IPv4 connections.
+                    #if QT_VERSION >= 0x050000
+                        QHostAddress::AnyIPv4
+                    #else
+                        QHostAddress::Any
+                    #endif
+                   );
     bool Listening(const QList<QHostAddress>& addr);
 
     // Whether or not the server is listening for incoming connections. If it

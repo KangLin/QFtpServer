@@ -68,7 +68,7 @@ install(EXPORT ${PROJECT_NAME}Targets
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
 CONFIGURE_FILE(
-    "${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/${PROJECT_NAME}Config.cmake.in"
     "${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake.in"
     IMMEDIATE @ONLY)
 install(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake.in"

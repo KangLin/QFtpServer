@@ -2,6 +2,15 @@
 
 project(QFtpServerCommandLine)
 
+SET(_COMPONENTS Core Network)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS ${_COMPONENTS})
+if(Qt${QT_VERSION_MAJOR}_FOUND)
+    FOREACH(_COMPONENT ${_COMPONENTS})
+        list(APPEND QT_LIBRARIES Qt${QT_VERSION_MAJOR}::${_COMPONENT})
+    ENDFOREACH()
+endif()
+message("${PROJECT_NAME} QT_LIBRARIES:${QT_LIBRARIES}")
+
 set(SOURCE_FILES
     main.cpp
     )
